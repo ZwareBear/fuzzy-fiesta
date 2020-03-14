@@ -11,8 +11,8 @@ import fileinput
 import socket
 
 #===========MODIFY THESE=================
-usrName = "ansiblesvc" #ansible user to be added
-password ="REB47B^g3yeeF3"
+usrName = "{USERNAME}" #ansible user to be added ex: ansiblesvc
+password ="{PASSWORD}" #any string will work ssh via this password will be disabled later
 #========================================
 
 # define vars
