@@ -8,34 +8,49 @@ Created on Wed Mar 4, 2020
 import os
 import crypt
 import fileinput
+import socket
+
+#===========MODIFY THESE=================
+usrName = "ansiblesvc" #ansible user to be added
+password ="REB47B^g3yeeF3"
+#========================================
 
 # define vars
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
-ssh_pub = "{path to public key}"
-logLoc = dir_path + "/logs/" #log file dir (will be mounted if needed)
-usrName = "{username}" #ansible user to be added
-password ="{password}" 
+#logLoc = "{FILE_LOC}" #log file dir (will be mounted if needed)
 file_name = dir_path + "/sudoers.txt"
-
-
-search = "%sudoALL=(ALL:ALL) ALL"
-replacement_text = "%sudoALL=(ALL:ALL) NOPASSWD: ALL"
+search = "%sudo	ALL=(ALL:ALL) ALL"
+replacement_text = "%sudo	ALL=(ALL:ALL) NOPASSWD: ALL"
+disable_pass = "Match User " +usrName +"\n\tPasswordAuthentication no"
+hostname = socket.gethostname()
 
 # create user
 encPass = crypt.crypt(password,"22")
-os.system("useradd -m -p "+encPass+" " + usrName)
-# add to sudoers 
-os.system("usermod -aG sudo "+ usrName)
+os.system("useradd -m -p "+encPass+" " + usrName) 
+
+# add to sudoers
+os.system("sudo usermod -aG sudo "+ usrName)
 
 #       ( modify sudo to include NOPASSWD: ALL at the end )
-# cat /etc/sudoers
 with fileinput.FileInput(file_name, inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace(search, replacement_text), end='')
 
-# copy pub ssh key from ansible 
-os.system("mkdir /home/"+usrName+"/.ssh/")
-os.system("cp "+ ssh_pub +" /home/"+usrName+"/.ssh/authorized_keys")
+# copy pub ssh key from ansible
+"""
+Log into Ansible Vm and from the manging user run:
+    sudo ssh-copy-id -i ~/.ssh/id_rsa.pub ansiblesvc@{HOSTNAME}
+"""
+print("Please copy Key over from Ansible host")
+print("sudo ssh-copy-id -i ~/.ssh/id_rsa.pub " + usrName+"@"+hostname)
+input("\nPress Enter to continue...")
 
-print("\n"+ usrName + " has been created please try adding to Ansible")
+# disable ssh via password
+os.system("cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak") 
+with open("/etc/ssh/sshd_config", "a") as myfile:
+    myfile.write(disable_pass)
+
+# restart ssh service so password disable is enforced
+os.system("sudo systemctl restart sshd")
+
+print(usrName + " has been created please try adding to Ansible")
