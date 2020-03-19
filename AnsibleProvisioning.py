@@ -18,7 +18,7 @@ password ="{PASSWORD}" #any string will work ssh via this password will be disab
 # define vars
 dir_path = os.path.dirname(os.path.realpath(__file__))
 #logLoc = "{FILE_LOC}" #log file dir (will be mounted if needed)
-file_name = dir_path + "/sudoers.txt"
+file_name = "/etc/sudoers"
 search = "%sudo	ALL=(ALL:ALL) ALL"
 replacement_text = "%sudo	ALL=(ALL:ALL) NOPASSWD: ALL"
 disable_pass = "Match User " +usrName +"\n\tPasswordAuthentication no"
